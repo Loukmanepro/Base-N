@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base-N Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #282c34;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #3a3f47;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        label {
+            margin-top: 10px;
+            display: block;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #61dafb;
+            color: black;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #21a1f1;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .methodology {
+            margin-top: 20px;
+            background-color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Base-N by loukmane HS</h1>
+        <label for="number">أدخل الرقم:</label>
+        <input type="text" id="number" required>
+
+        <label for="fromBase">اختر قاعدة الرقم:</label>
+        <input type="number" id="fromBase" min="2" max="100" value="10" required>
+
+        <label for="toBase">اختر قاعدة التحويل إليها:</label>
+        <input type="number" id="toBase" min="2" max="100" value="10" required>
+
+        <label for="bits">اختر عدد البيتات:</label>
+        <input type="number" id="bits" min="1" required>
+
+        <label for="signRepresentation">اختر طريقة تمثيل الإشارة:</label>
+        <select id="signRepresentation">
+            <option value="متمم 2">متمم 2</option>
+            <option value="قيمة مطلقة">قيمة مطلقة</option>
+            <option value="تمثيل مجمع">تمثيل مجمع</option>
+        </select>
+
+        <button id="convertButton">تحويل</button>
+        
+        <h2>النتيجة:</h2>
+        <div id="result" class="result-container"></div>
+
+        <h2>الطريقة:</h2>
+        <div id="methodology" class="methodology"></div>
+    </div>
+
+    <script>
+        function charToValue(char) {
+            const value = parseInt(char, 36); // تحويل الأحرف A-Z إلى أرقام بناءً على النظام الستة والثلاثين
+            if (value >= 0 && value < 36) {
+                return value;
+            } else {
+                throw new Error("رمز غير صالح");
+            }
+        }
+
+        function convertNumber(number, fromBase, toBase, bits, signRepresentation) {
+            let decimalNumber = 0;
+            let methodology = "";
+
+            number = number.toUpperCase(); // التأكد من أن الحروف كبيرة
+
+            // حساب الرقم العشري
+            methodology += `(${number})${fromBase} =\n`;
+            let expandedMethod = [];
+            let partialResults = [];
+
+            for (let i = 0; i < number.length; i++) {
+                let digitValue = charToValue(number[i]);
+                
+                if (digitValue >= fromBase) {
+                    throw new Error(`الرقم ${number[i]} غير صالح في القاعدة ${fromBase}`);
+                }
+
+                let exponent = number.length - 1 - i;
+                let multiplicationResult = digitValue * Math.pow(fromBase, exponent);
+
+                expandedMethod.push(`👉 ${digitValue}*${fromBase}^${exponent}`);
+                partialResults.push(multiplicationResult);
+                decimalNumber += multiplicationResult;
+            }
+
+            // عرض النتائج خطوة بخطوة
+            for (let i = 0; i < expandedMethod.length; i++) {
+                methodology += `${expandedMethod[i]} = ${partialResults[i]}\n`;
+            }
+
+            // جمع القيم
+            methodology += partialResults.join(' + ') + ` = ${decimalNumber}\n`;
+            
+            // تحويل الرقم إلى القاعدة المطلوبة
+            let convertedNumber = decimalNumber.toString(toBase).toUpperCase(); // تحويل إلى أحرف كبيرة
+            methodology += `       = (${convertedNumber})${toBase}\n`;
+
+            return {
+                result: convertedNumber,
+                methodology: methodology
+            };
+        }
+
+        // واجهة المستخدم
+        document.getElementById("convertButton").onclick = function() {
+            const number = document.getElementById("number").value;
+            const fromBase = parseInt(document.getElementById("fromBase").value);
+            const toBase = parseInt(document.getElementById("toBase").value);
+            const bits = parseInt(document.getElementById("bits").value);
+            const signRepresentation = document.getElementById("signRepresentation").value;
+
+            try {
+                const conversion = convertNumber(number, fromBase, toBase, bits, signRepresentation);
+                document.getElementById("result").innerText = conversion.result;
+                document.getElementById("methodology").innerText = conversion.methodology;
+            } catch (error) {
+                document.getElementById("result").innerText = "خطأ: " + error.message;
+                document.getElementById("methodology").innerText = "";
+            }
+        };
+    </script>
+</body>
+</html>
